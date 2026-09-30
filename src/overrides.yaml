@@ -1,0 +1,43 @@
+# 仕様書の定義と実データが食い違うプロパティの補正。scripts/build.ts が生成したスキーマに適用する
+#   nullable: true   null も許す（任意のプロパティはもともと null を許すので、必須のプロパティに使う）
+#   required: false  必須から外す
+#   add: {スキーマ}  仕様書にないが実データに入っているプロパティを任意のプロパティとして追加する
+# 根拠は scripts/fetch.ts で取得したデータを scripts/verify.ts で検証した結果（2026年9月29日）。
+# 「通常」は api.odpt.org、「チャレンジ」は api-challenge.odpt.org のデータ
+Bus:
+  '@id': { nullable: true }                   # 通常：624件中161件が null
+  odpt:busroute:                              # 通常：624件すべてにある
+    add: { type: string, description: 運行中の路線のID。, example: odpt.Busroute:Toei.T01 }
+  odpt:note:                                  # 通常：624件すべてにある
+    add: { type: string, description: 系統名や区間などの補足事項。 }
+BusTimetable:
+  odpt:note:                                  # 通常：134件、チャレンジ：1000件すべてにある
+    add: { type: string, description: 系統や便についての補足事項。 }
+BusroutePattern:
+  dc:title: { nullable: true }                # チャレンジ：1000件中1件が null
+BusroutePatternFare:
+  odpt:note:                                  # 通常：24件、チャレンジ：1000件すべてにある
+    add: { type: string, description: 乗車・降車のバス停などについての補足事項。 }
+BusstopPole:
+  odpt:note:                                  # 通常：15件、チャレンジ：293件にある
+    add: { type: string, description: バス停についての補足事項。 }
+BusstopPoleTimetable:
+  odpt:note:                                  # 通常：3件すべてにある
+    add: { type: string, description: 時刻表についての補足事項。 }
+Calendar:
+  odpt:operator:                              # 通常：161件、チャレンジ：1件にある
+    add: { type: string, x-odpt-ref: 'odpt:Operator', description: この曜日・日付区分を定めた事業者のID（`odpt:Operator` の `owl:sameAs`）。 }
+RailDirection:
+  odpt:operator:                              # 通常：20件にある
+    add: { type: string, x-odpt-ref: 'odpt:Operator', description: この進行方向を定めた事業者のID（`odpt:Operator` の `owl:sameAs`）。 }
+TrainInformation:
+  odpt:timeOfOrigin: { required: false }      # 通常：10件すべてにない
+FlightInformationArrival:
+  odpt:aircratfType:                          # チャレンジ：161件にあり、odpt:aircraftType は0件
+    add: { type: string, description: '機材の型式。仕様書の `odpt:aircraftType` の代わりに、綴りの異なるこのキーで返ることがある。' }
+FlightInformationDeparture:
+  odpt:aircratfType:                          # チャレンジ：163件にあり、odpt:aircraftType は0件
+    add: { type: string, description: '機材の型式。仕様書の `odpt:aircraftType` の代わりに、綴りの異なるこのキーで返ることがある。' }
+FlightScheduleObject:
+  odpt:originTime: { required: false }        # チャレンジ：1239件にない
+  odpt:destinationTime: { required: false }   # チャレンジ：1232件にない

@@ -1,0 +1,7 @@
+node_modules/
+build/
+# 仕様書の原本は配布しない
+ODPT_*.html
+# APIキー
+.env
+.DS_Store

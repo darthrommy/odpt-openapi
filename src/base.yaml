@@ -1,0 +1,172 @@
+# 手書き部分。scripts/build.ts が生成したパスとスキーマをこのファイルにマージする
+openapi: 3.1.0
+info:
+  title: ODPT API（非公式定義）
+  version: 4.16.0
+  license:
+    name: CC0 1.0 Universal
+    identifier: CC0-1.0
+  description: |
+    公共交通オープンデータセンター（ODPT）のAPIについて、公開されているAPI仕様書（第4.16版）をもとに第三者が作成した非公式のOpenAPI定義です。
+    ODPTおよび公共交通オープンデータ協議会が提供・保証するものではありません。正確な仕様は公式の仕様書で確認してください。
+
+    ## 検索結果の形式
+    検索系のAPIは、条件に一致したデータをJSON-LDのオブジェクトの配列で返します。一致するデータがなければ空の配列を返します。
+    件数がシステムの上限を超えると、上限以下に切り詰めた結果が返るため、条件を追加して取り直してください。
+    上限は多くのクラスで1,000件、`odpt:BusstopPole` で10,000件でした（2026年9月29日に確認）。
+
+    ## 値がない場合
+    任意のプロパティは、値がないときにプロパティ自体が省かれる場合と、`null` が入る場合があります。このため、任意のプロパティはすべて `null` も許す定義にしています。
+
+    ## 絞り込み条件の指定
+    各パスに列挙したクエリパラメータのほかに、そのクラスのプロパティ名をクエリパラメータに使って絞り込めます。
+    - 値が文字列か数値のプロパティは、プロパティ名をそのまま指定します（例：`dc:title=東京`）。
+    - 値が文字列か数値の配列のプロパティは、指定した値を要素に含むデータが一致します。
+    - 値がオブジェクトのプロパティは、`プロパティ名.キー` の形でキーを指定します（例：`odpt:stationTitle.en=Tokyo`）。`キーA.キーB` のように入れ子にもできます。
+    - 要素がオブジェクトの配列のプロパティは、条件に使えません。
+
+    値をコンマで区切ると、いずれかに一致するデータを返します（例：`dc:title=東京,五反田`）。区切って指定できる値の数には上限があり、超えるとエラーになります。
+    パラメータの値はURLエンコードして送信してください。
+
+    ## エンドポイント
+    データセットによってはエンドポイントが `https://api.odpt.org/api/v4` と異なります。利用するデータセットの案内を確認してください。
+servers:
+  - url: https://api.odpt.org/api/v4
+    description: 通常のAPI。
+  - url: https://api-challenge.odpt.org/api/v4
+    description: 公共交通オープンデータチャレンジの参加者向けAPI。参加者に発行されるキーでだけ利用でき、提供されるデータも通常のAPIと異なる。
+security:
+  - consumerKey: []
+tags:
+  - name: 共通
+    description: 曜日・日付区分と事業者。
+  - name: 鉄道
+    description: 路線、駅、時刻表、運賃、列車の位置、運行情報など。
+  - name: バス
+    description: 系統、バス停、時刻表、運賃、バスの位置など。
+  - name: 航空
+    description: 空港、ターミナル、時刻表、発着便の情報など。
+  - name: データダンプ
+    description: 指定したクラスの全データを返します。レスポンスはダンプファイルのURLへの302リダイレクトです（仕様書では301）。
+  - name: 地物検索
+    description: 緯度・経度と半径で指定した円の範囲にあるデータを返します。
+  - name: その他
+    description: IDを指定した取得と、事業者が提供するファイルの取得。
+paths:
+  /datapoints/{id}:
+    get:
+      operationId: getDatapoint
+      tags: [その他]
+      summary: IDを指定してデータを1件取得
+      description: データダンプAPIが対応するクラスのデータを取得できます。
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 取得するデータの `@id`（`urn:ucode:_` で始まるucode）または `owl:sameAs` の値。
+          schema:
+            type: string
+          examples:
+            ucode:
+              value: urn:ucode:_00001C000000000000010000030517CE
+            sameAs:
+              value: odpt.Station:TokyoMetro.Ginza.Ueno
+      responses:
+        '200':
+          description: 指定したIDのデータ。
+          content:
+            application/json:
+              schema:
+                type: array
+                # items は scripts/build.ts が、データダンプAPIと同じクラスの oneOf で埋める
+                items: {}
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '402':
+          description: このデータの取得には課金が必要です。
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '405': { $ref: '#/components/responses/MethodNotAllowed' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+  /files/{path}:
+    get:
+      operationId: getFile
+      tags: [その他]
+      summary: 事業者が提供するファイルを取得
+      description: |
+        GTFSなど、事業者が提供するファイルを取得します。レスポンスはファイルの保存先URLへの302リダイレクトです。
+        仕様書では `path` をクエリパラメータとしていますが、実際のAPIはパスの末尾にファイルのパスをつなげる形式です（2026年9月29日に確認）。
+      parameters:
+        - name: path
+          in: path
+          required: true
+          description: 取得するファイルのパス。`/` を含み、`%2F` にエンコードしても受け付けられます。
+          schema:
+            type: string
+          example: Toei/data/ToeiBus-GTFS.zip
+      responses:
+        '200':
+          description: リダイレクト先から取得したファイル。
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                contentMediaType: application/octet-stream
+        '302':
+          description: ファイルの保存先URLへのリダイレクト。
+          headers:
+            Location:
+              description: ファイルの保存先URL。
+              schema:
+                type: string
+                format: uri
+        '403':
+          description: '`acl:consumerKey` がないか、このファイルを取得する権限がありません。'
+        '404': { $ref: '#/components/responses/NotFound' }
+components:
+  securitySchemes:
+    consumerKey:
+      type: apiKey
+      in: query
+      name: acl:consumerKey
+      description: ODPT開発者サイトで発行されるアクセストークン。
+  schemas:
+    MultilingualText:
+      type: object
+      description: 言語タグ（`ja`、`en`、`ja-Hrkt` など）をキー、その言語の表記を値とするオブジェクト。
+      additionalProperties:
+        type: string
+      example:
+        ja: 東京
+        en: Tokyo
+    Time:
+      type: string
+      description: '`H:MM` または `HH:MM` 形式の時刻。バスの時刻表では時が1桁のことがある。'
+      pattern: '^\d{1,2}:\d{2}$'
+      example: '05:09'
+    GeoJSON:
+      type: object
+      description: GeoJSON形式の地物情報。
+      required: [type]
+      properties:
+        type:
+          type: string
+        coordinates:
+          type: array
+      additionalProperties: true
+  responses:
+    BadRequest:
+      description: パラメータが正しくありません。
+    Unauthorized:
+      description: '`acl:consumerKey` が正しくありません。仕様書ではこの場合は401とされていますが、実際のAPIは403を返します（2026年9月29日に確認）。'
+    Forbidden:
+      description: '`acl:consumerKey` がないか正しくない、またはこのデータを取得する権限がありません。'
+    NotFound:
+      description: 該当するデータがありません。
+    MethodNotAllowed:
+      description: このHTTPメソッドは使えません。
+    InternalServerError:
+      description: サーバー内部でエラーが発生しました。
+    ServiceUnavailable:
+      description: サービスを利用できません。

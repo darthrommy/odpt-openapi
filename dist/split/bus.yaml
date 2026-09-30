@@ -1,0 +1,1565 @@
+openapi: 3.1.0
+info:
+  title: ODPT API（非公式定義）：バス
+  version: 4.16.0
+  license:
+    name: CC0 1.0 Universal
+    identifier: CC0-1.0
+  description: |-
+    公共交通オープンデータセンター（ODPT）のAPIについて、公開されているAPI仕様書（第4.16版）をもとに第三者が作成した非公式のOpenAPI定義です。
+    ODPTおよび公共交通オープンデータ協議会が提供・保証するものではありません。正確な仕様は公式の仕様書で確認してください。
+
+    ## 検索結果の形式
+    検索系のAPIは、条件に一致したデータをJSON-LDのオブジェクトの配列で返します。一致するデータがなければ空の配列を返します。
+    件数がシステムの上限を超えると、上限以下に切り詰めた結果が返るため、条件を追加して取り直してください。
+    上限は多くのクラスで1,000件、`odpt:BusstopPole` で10,000件でした（2026年9月29日に確認）。
+
+    ## 値がない場合
+    任意のプロパティは、値がないときにプロパティ自体が省かれる場合と、`null` が入る場合があります。このため、任意のプロパティはすべて `null` も許す定義にしています。
+
+    ## 絞り込み条件の指定
+    各パスに列挙したクエリパラメータのほかに、そのクラスのプロパティ名をクエリパラメータに使って絞り込めます。
+    - 値が文字列か数値のプロパティは、プロパティ名をそのまま指定します（例：`dc:title=東京`）。
+    - 値が文字列か数値の配列のプロパティは、指定した値を要素に含むデータが一致します。
+    - 値がオブジェクトのプロパティは、`プロパティ名.キー` の形でキーを指定します（例：`odpt:stationTitle.en=Tokyo`）。`キーA.キーB` のように入れ子にもできます。
+    - 要素がオブジェクトの配列のプロパティは、条件に使えません。
+
+    値をコンマで区切ると、いずれかに一致するデータを返します（例：`dc:title=東京,五反田`）。区切って指定できる値の数には上限があり、超えるとエラーになります。
+    パラメータの値はURLエンコードして送信してください。
+
+    ## エンドポイント
+    データセットによってはエンドポイントが `https://api.odpt.org/api/v4` と異なります。利用するデータセットの案内を確認してください。
+
+    全体の定義は openapi.yaml にあります。
+servers:
+  - url: https://api.odpt.org/api/v4
+    description: 通常のAPI。
+  - url: https://api-challenge.odpt.org/api/v4
+    description: 公共交通オープンデータチャレンジの参加者向けAPI。参加者に発行されるキーでだけ利用でき、提供されるデータも通常のAPIと異なる。
+security:
+  - consumerKey: []
+tags:
+  - name: バス
+    description: 系統、バス停、時刻表、運賃、バスの位置など。
+  - name: データダンプ
+    description: 指定したクラスの全データを返します。レスポンスはダンプファイルのURLへの302リダイレクトです（仕様書では301）。
+  - name: 地物検索
+    description: 緯度・経度と半径で指定した円の範囲にあるデータを返します。
+paths:
+  /odpt:Bus:
+    get:
+      operationId: searchBus
+      tags:
+        - バス
+      summary: 走行中のバスの位置を検索
+      parameters:
+        - name: "@id"
+          in: query
+          description: データの `@id` で絞り込む。
+          schema:
+            type: string
+        - name: owl:sameAs
+          in: query
+          description: データの `owl:sameAs` で絞り込む。
+          schema:
+            type: string
+        - name: odpt:busroutePattern
+          in: query
+          description: バスが運行している系統のID（`odpt:BusroutePattern` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:BusroutePattern
+        - name: odpt:operator
+          in: query
+          description: 事業者のID（`odpt:Operator` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:Operator
+        - name: odpt:fromBusstopPole
+          in: query
+          description: バスが停車中のバス停、または最後に通過したバス停のID（`odpt:BusstopPole` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:BusstopPole
+        - name: odpt:toBusstopPole
+          in: query
+          description: バスが次に着くバス停のID（`odpt:BusstopPole` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:BusstopPole
+      responses:
+        "200":
+          description: 条件に一致したデータの配列。一致するデータがなければ空の配列。
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Bus"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /odpt:BusTimetable:
+    get:
+      operationId: searchBusTimetable
+      tags:
+        - バス
+      summary: バス時刻表を検索
+      parameters:
+        - name: "@id"
+          in: query
+          description: データの `@id` で絞り込む。
+          schema:
+            type: string
+        - name: owl:sameAs
+          in: query
+          description: データの `owl:sameAs` で絞り込む。
+          schema:
+            type: string
+        - name: odpt:operator
+          in: query
+          required: true
+          description: 事業者のID（`odpt:Operator` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:Operator
+        - name: odpt:busroutePattern
+          in: query
+          description: 系統のID（`odpt:BusroutePattern` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:BusroutePattern
+        - name: dc:title
+          in: query
+          description: 系統名などのバス路線名で絞り込む。
+          schema:
+            type: string
+        - name: odpt:calendar
+          in: query
+          description: 適用される曜日・日付区分のID（`odpt:Calendar` の `owl:sameAs`）。
+          schema:
+            type: string
+            x-odpt-ref: odpt:Calendar
+      responses:
+        "200":
+          description: 条件に一致したデータの配列。一致するデータがなければ空の配列。
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusTimetable"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /odpt:BusroutePattern:
+    get:
+      operationId: searchBusroutePattern
+      tags:
+        - バス
+      summary: バスの系統を検索
+      parameters:
+        - name: "@id"
+          in: query
+          description: データの `@id` で絞り込む。
+          schema:
+            type: string
+        - name: owl:sameAs
+          in: query
+          description: データの `owl:sameAs` で絞り込む。
+          schema:
+            type: string
+        - name: dc:title
+          in: query
+          description: 路線名や系統名で絞り込む。
+          schema:
+            type: string
+        - name: odpt:operator
+          in: query
+          description: 事業者のID（`odpt:Operator` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:Operator
+        - name: odpt:busroute
+          in: query
+          description: 路線のIDで絞り込む。
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 条件に一致したデータの配列。一致するデータがなければ空の配列。
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusroutePattern"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /odpt:BusroutePatternFare:
+    get:
+      operationId: searchBusroutePatternFare
+      tags:
+        - バス
+      summary: バスの運賃を検索
+      parameters:
+        - name: "@id"
+          in: query
+          description: データの `@id` で絞り込む。
+          schema:
+            type: string
+        - name: owl:sameAs
+          in: query
+          description: データの `owl:sameAs` で絞り込む。
+          schema:
+            type: string
+        - name: odpt:operator
+          in: query
+          description: 事業者のID（`odpt:Operator` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:Operator
+        - name: odpt:fromBusstopPole
+          in: query
+          description: 乗車するバス停標柱のID（`odpt:BusstopPole` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:BusstopPole
+        - name: odpt:toBusstopPole
+          in: query
+          description: 降車するバス停標柱のID（`odpt:BusstopPole` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:BusstopPole
+        - name: odpt:ticketFare
+          in: query
+          description: 切符で乗車するときの大人運賃。
+          schema:
+            type: integer
+        - name: odpt:childTicketFare
+          in: query
+          description: 切符で乗車するときの子供運賃。
+          schema:
+            type: integer
+        - name: odpt:icCardFare
+          in: query
+          description: ICカードで乗車するときの大人運賃。
+          schema:
+            type: integer
+        - name: odpt:childIcCardFare
+          in: query
+          description: ICカードで乗車するときの子供運賃。
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: 条件に一致したデータの配列。一致するデータがなければ空の配列。
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusroutePatternFare"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /odpt:BusstopPole:
+    get:
+      operationId: searchBusstopPole
+      tags:
+        - バス
+      summary: バス停標柱を検索
+      parameters:
+        - name: "@id"
+          in: query
+          description: データの `@id` で絞り込む。
+          schema:
+            type: string
+        - name: owl:sameAs
+          in: query
+          description: データの `owl:sameAs` で絞り込む。
+          schema:
+            type: string
+        - name: dc:title
+          in: query
+          description: バス停名で絞り込む。
+          schema:
+            type: string
+        - name: odpt:busstopPoleNumber
+          in: query
+          description: 標柱番号で絞り込む。
+          schema:
+            type: string
+        - name: odpt:platformNumber
+          in: query
+          description: のりば番号。
+          schema:
+            type: string
+        - name: odpt:busroutePattern
+          in: query
+          description: この標柱に停まる系統のID（`odpt:BusroutePattern` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:BusroutePattern
+        - name: odpt:operator
+          in: query
+          description: 事業者のID（`odpt:Operator` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:Operator
+      responses:
+        "200":
+          description: 条件に一致したデータの配列。一致するデータがなければ空の配列。
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusstopPole"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /odpt:BusstopPoleTimetable:
+    get:
+      operationId: searchBusstopPoleTimetable
+      tags:
+        - バス
+      summary: バス停標柱の時刻表を検索
+      parameters:
+        - name: "@id"
+          in: query
+          description: データの `@id` で絞り込む。
+          schema:
+            type: string
+        - name: owl:sameAs
+          in: query
+          description: データの `owl:sameAs` で絞り込む。
+          schema:
+            type: string
+        - name: odpt:busstopPole
+          in: query
+          description: バス停標柱のID（`odpt:BusstopPole` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:BusstopPole
+        - name: odpt:busDirection
+          in: query
+          description: 方面のIDで絞り込む。
+          schema:
+            type: string
+        - name: odpt:busroute
+          in: query
+          description: 路線のIDで絞り込む。
+          schema:
+            type: string
+        - name: odpt:operator
+          in: query
+          description: 事業者のID（`odpt:Operator` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:Operator
+        - name: odpt:calendar
+          in: query
+          description: 適用される曜日・日付区分のID（`odpt:Calendar` の `owl:sameAs`）。
+          schema:
+            type: string
+            x-odpt-ref: odpt:Calendar
+        - name: dc:date
+          in: query
+          description: データの生成日で絞り込む。
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: 条件に一致したデータの配列。一致するデータがなければ空の配列。
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusstopPoleTimetable"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /odpt:BusTimetable.json:
+    get:
+      operationId: dumpBusTimetable
+      tags:
+        - データダンプ
+      summary: odpt:BusTimetable の全データを取得
+      responses:
+        "200":
+          description: リダイレクト先から取得した全データ。
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusTimetable"
+        "302":
+          description: ダンプファイルのURLへのリダイレクト。
+          headers:
+            Location:
+              description: ダンプファイルのURL。
+              schema:
+                type: string
+                format: uri
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /odpt:BusroutePattern.json:
+    get:
+      operationId: dumpBusroutePattern
+      tags:
+        - データダンプ
+      summary: odpt:BusroutePattern の全データを取得
+      responses:
+        "200":
+          description: リダイレクト先から取得した全データ。
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusroutePattern"
+        "302":
+          description: ダンプファイルのURLへのリダイレクト。
+          headers:
+            Location:
+              description: ダンプファイルのURL。
+              schema:
+                type: string
+                format: uri
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /odpt:BusroutePatternFare.json:
+    get:
+      operationId: dumpBusroutePatternFare
+      tags:
+        - データダンプ
+      summary: odpt:BusroutePatternFare の全データを取得
+      responses:
+        "200":
+          description: リダイレクト先から取得した全データ。
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusroutePatternFare"
+        "302":
+          description: ダンプファイルのURLへのリダイレクト。
+          headers:
+            Location:
+              description: ダンプファイルのURL。
+              schema:
+                type: string
+                format: uri
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /odpt:BusstopPole.json:
+    get:
+      operationId: dumpBusstopPole
+      tags:
+        - データダンプ
+      summary: odpt:BusstopPole の全データを取得
+      responses:
+        "200":
+          description: リダイレクト先から取得した全データ。
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusstopPole"
+        "302":
+          description: ダンプファイルのURLへのリダイレクト。
+          headers:
+            Location:
+              description: ダンプファイルのURL。
+              schema:
+                type: string
+                format: uri
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /odpt:BusstopPoleTimetable.json:
+    get:
+      operationId: dumpBusstopPoleTimetable
+      tags:
+        - データダンプ
+      summary: odpt:BusstopPoleTimetable の全データを取得
+      responses:
+        "200":
+          description: リダイレクト先から取得した全データ。
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusstopPoleTimetable"
+        "302":
+          description: ダンプファイルのURLへのリダイレクト。
+          headers:
+            Location:
+              description: ダンプファイルのURL。
+              schema:
+                type: string
+                format: uri
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /places/odpt:BusstopPole:
+    get:
+      operationId: searchBusstopPoleByLocation
+      tags:
+        - 地物検索
+      summary: 指定した範囲にある odpt:BusstopPole を検索
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          description: 範囲の中心の緯度（WGS84、10進数）。
+          schema:
+            type: number
+          example: 35.681265
+        - name: lon
+          in: query
+          required: true
+          description: 範囲の中心の経度（WGS84、10進数）。
+          schema:
+            type: number
+          example: 139.766926
+        - name: radius
+          in: query
+          required: true
+          description: 範囲の半径（メートル）。
+          schema:
+            type: number
+            minimum: 0
+            maximum: 4000
+          example: 1000
+        - name: "@id"
+          in: query
+          description: データの `@id` で絞り込む。
+          schema:
+            type: string
+        - name: owl:sameAs
+          in: query
+          description: データの `owl:sameAs` で絞り込む。
+          schema:
+            type: string
+        - name: dc:title
+          in: query
+          description: バス停名で絞り込む。
+          schema:
+            type: string
+        - name: odpt:busstopPoleNumber
+          in: query
+          description: 標柱番号で絞り込む。
+          schema:
+            type: string
+        - name: odpt:platformNumber
+          in: query
+          description: のりば番号。
+          schema:
+            type: string
+        - name: odpt:busroutePattern
+          in: query
+          description: この標柱に停まる系統のID（`odpt:BusroutePattern` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:BusroutePattern
+        - name: odpt:operator
+          in: query
+          description: 事業者のID（`odpt:Operator` の `owl:sameAs`）で絞り込む。
+          schema:
+            type: string
+            x-odpt-ref: odpt:Operator
+      responses:
+        "200":
+          description: 範囲内で条件に一致したデータの配列。一致するデータがなければ空の配列。
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusstopPole"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "405":
+          $ref: "#/components/responses/MethodNotAllowed"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+components:
+  securitySchemes:
+    consumerKey:
+      type: apiKey
+      in: query
+      name: acl:consumerKey
+      description: ODPT開発者サイトで発行されるアクセストークン。
+  schemas:
+    MultilingualText:
+      type: object
+      description: 言語タグ（`ja`、`en`、`ja-Hrkt` など）をキー、その言語の表記を値とするオブジェクト。
+      additionalProperties:
+        type: string
+      example:
+        ja: 東京
+        en: Tokyo
+    Time:
+      type: string
+      description: "`H:MM` または `HH:MM` 形式の時刻。バスの時刻表では時が1桁のことがある。"
+      pattern: ^\d{1,2}:\d{2}$
+      example: 05:09
+    GeoJSON:
+      type: object
+      description: GeoJSON形式の地物情報。
+      required:
+        - type
+      properties:
+        type:
+          type: string
+        coordinates:
+          type: array
+      additionalProperties: true
+    Bus:
+      type: object
+      required:
+        - "@context"
+        - "@id"
+        - "@type"
+        - owl:sameAs
+        - odpt:busNumber
+        - dc:date
+        - dct:valid
+        - odpt:frequency
+        - odpt:busroutePattern
+        - odpt:operator
+      properties:
+        "@context":
+          type: string
+          description: JSON-LDのコンテキストを定義したファイルのURL。
+          example: http://vocab.odpt.org/context_odpt.jsonld
+        "@id":
+          type:
+            - string
+            - "null"
+          description: このデータを一意に識別するID。
+        "@type":
+          type: string
+          description: データのクラス。常に `odpt:Bus`。
+          example: odpt:Bus
+          const: odpt:Bus
+        owl:sameAs:
+          type: string
+          description: このバス運行データのID。
+        odpt:busNumber:
+          type: string
+          description: バスの車両番号。
+        dc:date:
+          type: string
+          format: date-time
+          description: このデータを生成した日時。
+          example: 2017-01-13T15:10:00+09:00
+        dct:valid:
+          type: string
+          format: date-time
+          description: このデータが有効な期限。
+          example: 2017-01-13T15:10:00+09:00
+        odpt:frequency:
+          type: integer
+          description: データの更新間隔（秒）。この秒数が過ぎてから再度取得すると新しい値が得られる。
+          example: 60
+        odpt:busroutePattern:
+          type: string
+          x-odpt-ref: odpt:BusroutePattern
+          description: 運行中の系統のID（`odpt:BusroutePattern` の `owl:sameAs`）。
+        odpt:busTimetable:
+          type:
+            - string
+            - "null"
+          x-odpt-ref: odpt:BusTimetable
+          description: 運行中の便の時刻表のID（`odpt:BusTimetable` の `owl:sameAs`）。
+        odpt:operator:
+          type: string
+          x-odpt-ref: odpt:Operator
+          description: 運行事業者のID（`odpt:Operator` の `owl:sameAs`）。
+        odpt:startingBusstopPole:
+          type:
+            - string
+            - "null"
+          x-odpt-ref: odpt:BusstopPole
+          description: 運行中の系統の始発バス停のID（`odpt:BusstopPole` の `owl:sameAs`）。
+        odpt:terminalBusstopPole:
+          type:
+            - string
+            - "null"
+          x-odpt-ref: odpt:BusstopPole
+          description: 運行中の系統の終点バス停のID（`odpt:BusstopPole` の `owl:sameAs`）。
+        odpt:fromBusstopPole:
+          type:
+            - string
+            - "null"
+          x-odpt-ref: odpt:BusstopPole
+          description: バスが停車中のバス停、または最後に通過したバス停のID（`odpt:BusstopPole` の `owl:sameAs`）。
+        odpt:fromBusstopPoleTime:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: 最後に通過したバス停を出た時刻。`odpt:fromBusstopPole` が null ならこの値も null。
+          example: 2017-01-13T15:10:00+09:00
+        odpt:toBusstopPole:
+          type:
+            - string
+            - "null"
+          x-odpt-ref: odpt:BusstopPole
+          description: バスが次に着くバス停のID（`odpt:BusstopPole` の `owl:sameAs`）。
+        odpt:progress:
+          type:
+            - number
+            - "null"
+          format: double
+          description: "`odpt:fromBusstopPole` を0、`odpt:toBusstopPole` を1としたときの現在位置の割合。"
+          example: 0
+        geo:long:
+          type:
+            - number
+            - "null"
+          format: double
+          description: バスの現在位置の経度（WGS84、10進数）。
+          example: 139.1234
+        geo:lat:
+          type:
+            - number
+            - "null"
+          format: double
+          description: バスの現在位置の緯度（WGS84、10進数）。
+          example: 35.1234
+        odpt:speed:
+          type:
+            - number
+            - "null"
+          format: double
+          description: バスの速度（km/h）。
+          example: 0
+        odpt:azimuth:
+          type:
+            - number
+            - "null"
+          format: double
+          description: バスが向いている方位角（度）。北を0度とし、時計回りに増える。
+          example: 90
+        odpt:doorStatus:
+          type:
+            - string
+            - "null"
+          enum:
+            - open
+            - close
+            - self
+          description: 扉の状態。`open` は開、`close` は閉、`self` は半自動。
+        odpt:occupancyStatus:
+          type:
+            - string
+            - "null"
+          enum:
+            - odpt.OccupancyStatus:Empty
+            - odpt.OccupancyStatus:ManySeatsAvailable
+            - odpt.OccupancyStatus:FewSeatsAvailable
+            - odpt.OccupancyStatus:StandingRoomOnly
+            - odpt.OccupancyStatus:CrushedStandingRoomOnly
+            - odpt.OccupancyStatus:FullRoomOnly
+            - odpt.OccupancyStatus:NotAcceptingPassengers
+          description: 車内の混み具合。
+          example: odpt.OccupancyStatus:Empty
+        odpt:busroute:
+          type:
+            - string
+            - "null"
+          description: 運行中の路線のID。
+          example: odpt.Busroute:Toei.T01
+        odpt:note:
+          type:
+            - string
+            - "null"
+          description: 系統名や区間などの補足事項。
+    BusTimetable:
+      type: object
+      required:
+        - "@context"
+        - "@id"
+        - "@type"
+        - owl:sameAs
+        - odpt:operator
+        - odpt:busroutePattern
+        - odpt:calendar
+        - odpt:busTimetableObject
+      properties:
+        "@context":
+          type: string
+          description: JSON-LDのコンテキストを定義したファイルのURL。
+          example: http://vocab.odpt.org/context_odpt.jsonld
+        "@id":
+          type: string
+          description: このデータを一意に識別するucode。
+          example: urn:ucode:_00001C000000000000010000030FD7E5
+        "@type":
+          type: string
+          description: データのクラス。常に `odpt:BusTimetable`。
+          example: odpt:BusTimetable
+          const: odpt:BusTimetable
+        owl:sameAs:
+          type: string
+          description: このバス時刻表のID。
+        dc:date:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: このデータを生成した日時。
+          example: 2017-01-13T15:10:00+09:00
+        dct:issued:
+          type:
+            - string
+            - "null"
+          format: date
+          description: この時刻表が適用され始めたダイヤ改正日。
+          example: 2017-01-13
+        dct:valid:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: このデータが有効な期限。
+          example: 2017-01-13T15:10:00+09:00
+        dc:title:
+          type:
+            - string
+            - "null"
+          description: 系統名などのバス路線名。
+        odpt:kana:
+          type:
+            - string
+            - "null"
+          description: バス路線名の読み。
+        odpt:operator:
+          type: string
+          x-odpt-ref: odpt:Operator
+          description: 運行事業者のID（`odpt:Operator` の `owl:sameAs`）。
+        odpt:busroutePattern:
+          type: string
+          x-odpt-ref: odpt:BusroutePattern
+          description: この時刻表の系統のID（`odpt:BusroutePattern` の `owl:sameAs`）。
+        odpt:calendar:
+          type: string
+          x-odpt-ref: odpt:Calendar
+          description: 適用される曜日・日付区分のID（`odpt:Calendar` の `owl:sameAs`）。
+        odpt:busTimetableObject:
+          type: array
+          items:
+            $ref: "#/components/schemas/BusTimetableObject"
+          description: バス停ごとの時刻の一覧。
+        odpt:note:
+          type:
+            - string
+            - "null"
+          description: 系統や便についての補足事項。
+    BusTimetableObject:
+      type: object
+      required:
+        - odpt:index
+        - odpt:busstopPole
+      properties:
+        odpt:index:
+          type: integer
+          description: 系統内でバス停を通る順番。
+          example: 1
+        odpt:busstopPole:
+          type: string
+          x-odpt-ref: odpt:BusstopPole
+          description: バス停標柱のID（`odpt:BusstopPole` の `owl:sameAs`）。
+        odpt:arrivalTime:
+          anyOf:
+            - $ref: "#/components/schemas/Time"
+            - type: "null"
+          description: バスがバス停に着く時刻。
+          example: 10:00
+        odpt:departureTime:
+          anyOf:
+            - $ref: "#/components/schemas/Time"
+            - type: "null"
+          description: バスがバス停を出る時刻。
+          example: 10:00
+        odpt:destinationSign:
+          type:
+            - string
+            - "null"
+          description: 行先表示（方向幕）の内容。
+        odpt:isNonStepBus:
+          type:
+            - boolean
+            - "null"
+          description: ノンステップバスなら true。
+          example: true
+        odpt:isMidnight:
+          type:
+            - boolean
+            - "null"
+          description: 深夜バスなら true。
+          example: true
+        odpt:canGetOn:
+          type:
+            - boolean
+            - "null"
+          description: このバス停で乗車できるなら true。
+          example: true
+        odpt:canGetOff:
+          type:
+            - boolean
+            - "null"
+          description: このバス停で降車できるなら true。
+          example: true
+        odpt:note:
+          type:
+            - string
+            - "null"
+          description: 補足事項。
+    BusroutePattern:
+      type: object
+      required:
+        - "@context"
+        - "@id"
+        - "@type"
+        - owl:sameAs
+        - dc:date
+        - dc:title
+        - odpt:operator
+        - odpt:busstopPoleOrder
+      properties:
+        "@context":
+          type: string
+          description: JSON-LDのコンテキストを定義したファイルのURL。
+          example: http://vocab.odpt.org/context_odpt.jsonld
+        "@id":
+          type: string
+          description: このデータを一意に識別するucode。
+          example: urn:ucode:_00001C000000000000010000030FD7E5
+        "@type":
+          type: string
+          description: データのクラス。常に `odpt:BusroutePattern`。
+          example: odpt:BusroutePattern
+          const: odpt:BusroutePattern
+        owl:sameAs:
+          type: string
+          description: このバス路線データのID。
+        dc:date:
+          type: string
+          format: date-time
+          description: このデータを生成した日時。
+          example: 2017-01-13T15:10:00+09:00
+        dct:valid:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: このデータが有効な期限。
+          example: 2017-01-13T15:10:00+09:00
+        dc:title:
+          type:
+            - string
+            - "null"
+          description: 系統名や系統番号などのバス路線名。
+        odpt:kana:
+          type:
+            - string
+            - "null"
+          description: バス路線名の読み。
+        odpt:operator:
+          type: string
+          x-odpt-ref: odpt:Operator
+          description: 運行事業者のID（`odpt:Operator` の `owl:sameAs`）。
+        odpt:busroute:
+          type:
+            - string
+            - "null"
+          description: 系統のID。
+        odpt:pattern:
+          type:
+            - string
+            - "null"
+          description: 系統パターン。
+        odpt:direction:
+          type:
+            - string
+            - "null"
+          description: 運行の方向。
+        ug:region:
+          anyOf:
+            - $ref: "#/components/schemas/GeoJSON"
+            - type: "null"
+          description: 地物の形状（GeoJSON）。
+        odpt:busstopPoleOrder:
+          type: array
+          items:
+            $ref: "#/components/schemas/BusstopPoleOrder"
+          description: 系統で停まるバス停を順番に並べた一覧。
+        odpt:note:
+          type:
+            - string
+            - "null"
+          description: 補足事項。
+        odpt:busLocationURL:
+          type:
+            - string
+            - "null"
+          description: バスの現在位置を表示するWebサイトのURL。
+    BusstopPoleOrder:
+      type: object
+      required:
+        - odpt:busstopPole
+        - odpt:index
+      properties:
+        odpt:busstopPole:
+          type: string
+          x-odpt-ref: odpt:BusstopPole
+          description: バス停標柱のID（`odpt:BusstopPole` の `owl:sameAs`）。
+        odpt:index:
+          type: integer
+          description: 系統内でバス停を通る順番。通る順に値が大きくなる。
+          example: 1
+        odpt:openingDoorsToGetOn:
+          type:
+            - array
+            - "null"
+          items:
+            type: string
+            enum:
+              - odpt:OpeningDoor:FrontSide
+              - odpt:OpeningDoor:RearSide
+          description: 乗車に使える扉。
+        odpt:openingDoorsToGetOff:
+          type:
+            - array
+            - "null"
+          items:
+            type: string
+            enum:
+              - odpt:OpeningDoor:FrontSide
+              - odpt:OpeningDoor:RearSide
+          description: 降車に使える扉。
+        odpt:note:
+          type:
+            - string
+            - "null"
+          description: 補足事項。
+    BusroutePatternFare:
+      type: object
+      required:
+        - "@context"
+        - "@id"
+        - "@type"
+        - owl:sameAs
+        - dc:date
+        - odpt:operator
+        - odpt:fromBusroutePattern
+        - odpt:fromBusstopPoleOrder
+        - odpt:fromBusstopPole
+        - odpt:toBusroutePattern
+        - odpt:toBusstopPoleOrder
+        - odpt:toBusstopPole
+        - odpt:ticketFare
+      properties:
+        "@context":
+          type: string
+          description: JSON-LDのコンテキストを定義したファイルのURL。
+          example: http://vocab.odpt.org/context_odpt.jsonld
+        "@id":
+          type: string
+          description: このデータを一意に識別するucode。
+          example: urn:ucode:_00001C000000000000010000030FD7E5
+        "@type":
+          type: string
+          description: データのクラス。常に `odpt:BusroutePatternFare`。
+          example: odpt:BusroutePatternFare
+          const: odpt:BusroutePatternFare
+        owl:sameAs:
+          type: string
+          description: このバス運賃データのID。
+        dc:date:
+          type: string
+          format: date-time
+          description: このデータを生成した日時。
+          example: 2017-01-13T15:10:00+09:00
+        dct:issued:
+          type:
+            - string
+            - "null"
+          format: date
+          description: この運賃が適用され始めた改定日。
+          example: 2017-01-13
+        dct:valid:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: このデータが有効な期限。
+          example: 2017-01-13T15:10:00+09:00
+        odpt:operator:
+          type: string
+          x-odpt-ref: odpt:Operator
+          description: 事業者のID（`odpt:Operator` の `owl:sameAs`）。
+        odpt:fromBusroutePattern:
+          type: string
+          x-odpt-ref: odpt:BusroutePattern
+          description: 乗車する系統のID（`odpt:BusroutePattern` の `owl:sameAs`）。
+        odpt:fromBusstopPoleOrder:
+          type: integer
+          description: 乗車するバス停が `odpt:fromBusroutePattern` の系統で何番目か。その系統の `odpt:busstopPoleOrder` にある `odpt:index` の値。
+          example: 0
+        odpt:fromBusstopPole:
+          type: string
+          x-odpt-ref: odpt:BusstopPole
+          description: 乗車するバス停のID。`odpt:fromBusroutePattern` と `odpt:fromBusstopPoleOrder` で決まるバス停と同じ。
+        odpt:toBusroutePattern:
+          type: string
+          x-odpt-ref: odpt:BusroutePattern
+          description: 降車する系統のID（`odpt:BusroutePattern` の `owl:sameAs`）。
+        odpt:toBusstopPoleOrder:
+          type: integer
+          description: 降車するバス停が `odpt:toBusroutePattern` の系統で何番目か。その系統の `odpt:busstopPoleOrder` にある `odpt:index` の値。
+          example: 0
+        odpt:toBusstopPole:
+          type: string
+          x-odpt-ref: odpt:BusstopPole
+          description: 降車するバス停のID（`odpt:BusstopPole` の `owl:sameAs`）。`odpt:toBusroutePattern` と `odpt:toBusstopPoleOrder` で決まるバス停と同じ。
+        odpt:ticketFare:
+          type: integer
+          description: 切符で乗車するときの大人運賃（円）。
+          example: 200
+        odpt:childTicketFare:
+          type:
+            - integer
+            - "null"
+          description: 切符で乗車するときの子供運賃（円）。
+          example: 100
+        odpt:icCardFare:
+          type:
+            - integer
+            - "null"
+          description: ICカードで乗車するときの大人運賃（円）。
+          example: 200
+        odpt:childIcCardFare:
+          type:
+            - integer
+            - "null"
+          description: ICカードで乗車するときの子供運賃（円）。
+          example: 100
+        odpt:note:
+          type:
+            - string
+            - "null"
+          description: 乗車・降車のバス停などについての補足事項。
+    BusstopPole:
+      type: object
+      required:
+        - "@context"
+        - "@id"
+        - "@type"
+        - owl:sameAs
+        - dc:date
+        - dc:title
+        - odpt:operator
+      properties:
+        "@context":
+          type: string
+          description: JSON-LDのコンテキストを定義したファイルのURL。
+          example: http://vocab.odpt.org/context_odpt.jsonld
+        "@id":
+          type: string
+          description: このデータを一意に識別するucode。
+          example: urn:ucode:_00001C000000000000010000030FD7E5
+        "@type":
+          type: string
+          description: データのクラス。常に `odpt:BusstopPole`。
+          example: odpt:BusstopPole
+          const: odpt:BusstopPole
+        owl:sameAs:
+          type: string
+          description: このバス停標柱データのID。
+        dc:date:
+          type: string
+          format: date-time
+          description: このデータを生成した日時。
+          example: 2017-01-13T15:10:00+09:00
+        dct:valid:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: このデータが有効な期限。
+          example: 2017-01-13T15:10:00+09:00
+        dc:title:
+          type: string
+          description: バス停名。
+          example: 豊洲駅前
+        odpt:kana:
+          type:
+            - string
+            - "null"
+          description: バス停名の読み。
+          example: とよすえきまえ
+        title:
+          anyOf:
+            - $ref: "#/components/schemas/MultilingualText"
+            - type: "null"
+          description: バス停名の多言語表記。
+          example:
+            ja: 豊洲駅前
+            ja-Hrkt: とよすえきまえ
+            en: Toyosu Sta.
+        geo:long:
+          type:
+            - number
+            - "null"
+          format: double
+          description: 標柱の経度（WGS84）。
+          example: 139.1234
+        geo:lat:
+          type:
+            - number
+            - "null"
+          format: double
+          description: 標柱の緯度（WGS84）。
+          example: 35.1234
+        ug:region:
+          anyOf:
+            - $ref: "#/components/schemas/GeoJSON"
+            - type: "null"
+          description: 地物の形状（GeoJSON）。
+        odpt:busroutePattern:
+          type:
+            - array
+            - "null"
+          items:
+            type: string
+            x-odpt-ref: odpt:BusroutePattern
+          description: このバス停に停まる系統のID（`odpt:BusroutePattern` の `owl:sameAs`）の一覧。
+        odpt:operator:
+          type: array
+          items:
+            type: string
+            x-odpt-ref: odpt:Operator
+          description: このバス停に停まるバスの事業者のID（`odpt:Operator` の `owl:sameAs`）の一覧。
+        odpt:busstopPoleNumber:
+          type:
+            - string
+            - "null"
+          description: 同じ名前のバス停にある標柱どうしを区別する番号。のりば番号と同じとは限らない。
+        odpt:platformNumber:
+          type:
+            - string
+            - "null"
+          description: のりば番号。
+        odpt:busstopPoleTimetable:
+          type:
+            - array
+            - "null"
+          items:
+            type: string
+            x-odpt-ref: odpt:BusstopPoleTimetable
+          description: この標柱の時刻表のID（`odpt:BusstopPoleTimetable` の `owl:sameAs`）の一覧。
+        odpt:note:
+          type:
+            - string
+            - "null"
+          description: バス停についての補足事項。
+    BusstopPoleTimetable:
+      type: object
+      required:
+        - "@context"
+        - "@id"
+        - "@type"
+        - owl:sameAs
+        - dc:date
+        - odpt:busstopPole
+        - odpt:busDirection
+        - odpt:busroute
+        - odpt:operator
+        - odpt:calendar
+      properties:
+        "@context":
+          type: string
+          description: JSON-LDのコンテキストを定義したファイルのURL。
+          example: http://vocab.odpt.org/context_odpt.jsonld
+        "@id":
+          type: string
+          description: このデータを一意に識別するucode。
+          example: urn:ucode:_00001C000000000000010000030FD7E5
+        "@type":
+          type: string
+          description: データのクラス。常に `odpt:BusstopPoleTimetable`。
+          example: odpt:BusstopPoleTimetable
+          const: odpt:BusstopPoleTimetable
+        owl:sameAs:
+          type: string
+          description: このバス停標柱時刻表のID。
+        dc:date:
+          type: string
+          format: date-time
+          description: このデータを生成した日時。
+          example: 2017-01-13T15:10:00+09:00
+        dct:issued:
+          type:
+            - string
+            - "null"
+          format: date
+          description: この時刻表が適用され始めたダイヤ改正日。
+          example: 2017-01-13
+        dct:valid:
+          type:
+            - string
+            - "null"
+          format: date-time
+          description: このデータが有効な期限（ISO 8601）。期限がない場合はこのプロパティがない。
+          example: 2017-01-13T15:10:00+09:00
+        dc:title:
+          type:
+            - string
+            - "null"
+          description: 系統名などのバス路線名。
+        odpt:busstopPole:
+          type: string
+          x-odpt-ref: odpt:BusstopPole
+          description: バス停標柱のID（`odpt:BusstopPole` の `owl:sameAs`）。
+        odpt:busDirection:
+          type: string
+          description: 方面のID。配列で入ることもある。
+        odpt:busroute:
+          type: string
+          description: 路線のID。複数の路線をまとめた時刻表などでは配列で入ることもある。
+        odpt:operator:
+          type: string
+          x-odpt-ref: odpt:Operator
+          description: 事業者のID（`odpt:Operator` の `owl:sameAs`）。
+        odpt:calendar:
+          type: string
+          x-odpt-ref: odpt:Calendar
+          description: 適用される曜日・日付区分のID（`odpt:Calendar` の `owl:sameAs`）。
+        odpt:busstopPoleTimetableObject:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: "#/components/schemas/BusstopPoleTimetableObject"
+          description: 便ごとの時刻の一覧。
+        odpt:note:
+          type:
+            - string
+            - "null"
+          description: 時刻表についての補足事項。
+    BusstopPoleTimetableObject:
+      type: object
+      required:
+        - odpt:departureTime
+      properties:
+        odpt:arrivalTime:
+          anyOf:
+            - $ref: "#/components/schemas/Time"
+            - type: "null"
+          description: バスがバス停に着く時刻。
+          example: 10:00
+        odpt:departureTime:
+          allOf:
+            - $ref: "#/components/schemas/Time"
+          description: バスがバス停を出る時刻。
+          example: 10:00
+        odpt:destinationBusstopPole:
+          type:
+            - string
+            - "null"
+          x-odpt-ref: odpt:BusstopPole
+          description: 行先のバス停標柱のID（`odpt:BusstopPole` の `owl:sameAs`）。
+        odpt:destinationSign:
+          type:
+            - string
+            - "null"
+          description: 行先表示（方向幕）の内容。
+        odpt:busroutePattern:
+          type:
+            - string
+            - "null"
+          x-odpt-ref: odpt:BusroutePattern
+          description: 系統のID（`odpt:BusroutePattern` の `owl:sameAs`）。
+        odpt:busroutePatternOrder:
+          type:
+            - integer
+            - "null"
+          description: このバス停が `odpt:busroutePattern` の系統で何番目か。その系統の `odpt:busstopPoleOrder` にある `odpt:index` の値。
+          example: 0
+        odpt:isNonStepBus:
+          type:
+            - boolean
+            - "null"
+          description: ノンステップバスなら true。
+          example: true
+        odpt:isMidnight:
+          type:
+            - boolean
+            - "null"
+          description: 深夜バスなら true。
+          example: true
+        odpt:canGetOn:
+          type:
+            - boolean
+            - "null"
+          description: このバス停で乗車できるなら true。
+          example: true
+        odpt:canGetOff:
+          type:
+            - boolean
+            - "null"
+          description: このバス停で降車できるなら true。
+          example: true
+        odpt:note:
+          type:
+            - string
+            - "null"
+          description: 補足事項。
+  responses:
+    BadRequest:
+      description: パラメータが正しくありません。
+    Unauthorized:
+      description: "`acl:consumerKey` が正しくありません。仕様書ではこの場合は401とされていますが、実際のAPIは403を返します（2026年9月29日に確認）。"
+    Forbidden:
+      description: "`acl:consumerKey` がないか正しくない、またはこのデータを取得する権限がありません。"
+    NotFound:
+      description: 該当するデータがありません。
+    MethodNotAllowed:
+      description: このHTTPメソッドは使えません。
+    InternalServerError:
+      description: サーバー内部でエラーが発生しました。
+    ServiceUnavailable:
+      description: サービスを利用できません。

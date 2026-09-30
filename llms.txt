@@ -1,0 +1,35 @@
+# ODPT API 非公式 OpenAPI 定義
+
+> 公共交通オープンデータセンター（ODPT）API v4 の非公式 OpenAPI 3.1 定義。公式の API 仕様書（第4.16版）から生成し、2026年9月29日に実データで検証して、仕様書と実際の API の食い違いを反映している。ODPT が提供・保証するものではない。
+
+- 認証：すべてのリクエストにクエリパラメータ `acl:consumerKey` が必要。キーがない場合も誤っている場合も 403 が返る（仕様書では誤っている場合は 401）。
+- ベースURL：通常は `https://api.odpt.org/api/v4`。公共交通オープンデータチャレンジの参加者向けは `https://api-challenge.odpt.org/api/v4` で、キーも提供データも通常と別。
+- 検索 API（`GET /odpt:Station` など）は常に配列を返す。一致なしなら空配列。件数には上限があり（多くのクラスで1,000件）、超えると切り詰められる。
+- 各パスに列挙したパラメータのほかに、クラスのプロパティ名をクエリパラメータにして絞り込める（例：`dc:title=東京`、`odpt:stationTitle.en=Tokyo`）。値をコンマで区切ると OR 検索になる。
+- ID はほとんどが `owl:sameAs` の値（例：`odpt.Station:TokyoMetro.Ginza.Ueno`）。ほかのクラスを参照するプロパティには、定義で `x-odpt-ref` に参照先のクラスを示している。
+- 任意のプロパティは、値がないとき省略される場合と `null` が入る場合がある。
+- 航空の到着・出発情報では、機材の型式が仕様書の `odpt:aircraftType` ではなく `odpt:aircratfType` で返ることがある。
+- ファイル取得は仕様書の `GET /v4/files/?path=…` ではなく `GET /api/v4/files/{path}`（例：`/files/Toei/data/ToeiBus-GTFS.zip`）。データダンプ（`/odpt:Station.json` など）とファイル取得は、実体の URL への 302 リダイレクトを返す。
+
+## 定義ファイル
+
+必要な分野のファイルだけ読めば足りる。分野ごとのファイルは、それぞれ単独で使える OpenAPI 定義になっている。
+
+- [鉄道](dist/split/rail.yaml): 路線、駅、駅時刻表、列車時刻表、運賃、列車の位置、運行情報、列車種別、進行方向、駅別乗降人員
+- [バス](dist/split/bus.yaml): 系統、バス停標柱、バス時刻表、バス停時刻表、運賃、バスの位置
+- [航空](dist/split/air.yaml): 空港、ターミナル、フライト時刻表、到着・出発情報、運航状況
+- [共通](dist/split/common.yaml): 曜日・日付区分（`odpt:Calendar`）、事業者（`odpt:Operator`）
+- [その他](dist/split/other.yaml): ID を指定した1件取得（`/datapoints/{id}`）、事業者が提供するファイルの取得
+- [全体（YAML）](dist/openapi.yaml): 上の5つをまとめたもの（約190KB）
+- [全体（JSON）](dist/openapi.json): 全体の JSON 版
+
+openapi-typescript で TypeScript の型を生成できる（openapi-fetch と組み合わせて実際の API で動作を確認済み）。openapi-typescript は TypeScript 5 か 6 の JavaScript API が必要で、TypeScript 7 だけの環境では動かない。[型の生成の方法](scripts/types.ts)
+
+## 詳細
+
+- [公式の仕様書との違い](README.md#公式の仕様書との違い): 実データの検証で見つかった食い違いと、この定義での扱いの一覧
+- [補正の根拠](src/overrides.yaml): 補正したプロパティごとの、実データでの件数
+
+## Optional
+
+- [定義の生成と検証の手順](README.md#定義の生成): 仕様書の版が上がったときの更新方法

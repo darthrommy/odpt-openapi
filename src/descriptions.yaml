@@ -1,0 +1,363 @@
+# 仕様書の説明文を書き直したもの。キーは原文の sha256 の先頭10文字（scripts/build.ts の hash()）
+# 原文が変わるとキーが変わるので、node scripts/build.ts --todo で未作成の分を確認する
+0d2262144b: JSON-LDのコンテキストを定義したファイルのURL。  # @context
+cb60203017: このデータを一意に識別するucode。  # @id
+a0ff18c682: データのクラス。常に `odpt:Calendar`。
+8336680b48: このデータを生成した日時（ISO 8601）。  # dc:date
+8f9f7ea251: 'このデータのID。`odpt.Calendar:名称` の形で、期間があれば `.期間` が続く。'
+0553cb5019: 日本語の曜日・日付区分名（平日、休日、市場休日など）。
+eb6b3d2352: 曜日・日付区分名の多言語表記。
+22c1fa86bd: この区分に当てはまる日付の一覧（ISO 8601の日付）。
+b58c8d7a68: この区分が有効な期間（ISO 8601の期間）。
+c8fb6d9399: データのクラス。常に `odpt:Operator`。
+8fa81e48ba: 'このデータのID。`odpt.Operator:名称` の形。'
+9effa51041: 日本語の事業者名。
+0d0b2b1940: 事業者名の多言語表記。
+b39a1e600b: データのクラス。常に `odpt:PassengerSurvey`。
+6724a6c14a: 'このデータのID。`odpt.PassengerSurvey:会社名.駅名` か `odpt.PassengerSurvey:会社名.路線名.駅名` の形。'
+002d52e05a: 事業者のID（`odpt:Operator` の `owl:sameAs`）。  # odpt:operator
+945c9b3991: 対象の駅のID（`odpt:Station` の `owl:sameAs`）の一覧。
+03a7e39ecc: 対象の路線のID（`odpt:Railway` の `owl:sameAs`）の一覧。
+90e817e332: 人数が降車を含む乗降人員なら true、乗車人員だけなら false。
+bf087ef77b: 調査年度ごとの人数の一覧。
+8066c3d339: 調査した年度。
+851b1e450f: 1日平均の乗降人員数。`odpt:includeAlighting` が false のときは乗車人員数。
+5987d00824: JSON-LDのコンテキストを定義したファイルのURL。
+cd6742f755: データのクラス。常に `odpt:RailDirection`。
+8ba13d6cb3: このデータを生成した日時（ISO 8601）。
+cf3aaa63b7: 'このデータのID。`odpt.RailDirection:進行方向` か `odpt.RailDirection:会社名.進行方向` の形。'
+844ad2dda6: 日本語の進行方向名。
+a069a95e79: 進行方向名の多言語表記。
+1c0f9c468a: データのクラス。常に `odpt:Railway`。
+d193dbef78: 'このデータのID。`odpt.Railway:会社名.路線名` の形。'
+776cbd642a: 日本語の路線名。
+0b6c5ea082: 路線名の多言語表記。
+2eccab8098: 路線名の読み（ひらがな）。
+bae64cc553: 路線記号（丸ノ内線なら `M`）。
+3d1eaf4e33: 路線の色。`#RRGGBB`（16進）、`DICnnn`（DIC）、`PANTONExxxx`（PANTONE）のいずれかの形式。
+264a82de58: 地物の形状（GeoJSON）。  # ug:region
+59cd1421e7: '`odpt:stationOrder` の `odpt:index` が増える向きの進行方向のID（`odpt:RailDirection` の `owl:sameAs`）。'
+c96a0df904: '`odpt:stationOrder` の `odpt:index` が減る向きの進行方向のID（`odpt:RailDirection` の `owl:sameAs`）。'
+aab82e9e8a: 路線上の駅を並び順に並べた一覧。
+262fb60b5a: 駅のID（`odpt:Station` の `owl:sameAs`）。  # odpt:station
+6704ccf183: 駅名の多言語表記。
+ff153bb5eb: 駅の並び順を表す整数。列車は通常、進行方向に応じてこの値の小さい順か大きい順に停車する。環状線などでは同じ駅が複数回現れることがある。
+225777aa7a: データのクラス。常に `odpt:RailwayFare`。
+31678407b5: この運賃が適用され始めた改定日（ISO 8601の日付）。
+df6c40ea6c: このデータが有効な期限（ISO 8601）。  # dct:valid
+e2441123b4: 'このデータのID。`odpt.RailwayFare:` に続けて、出発駅の会社名・路線名・駅名、到着駅の会社名・路線名・駅名を `.` でつないだ形。'
+d61d261947: 出発駅のID（`odpt:Station` の `owl:sameAs`）。
+be87f61f04: 到着駅のID（`odpt:Station` の `owl:sameAs`）。
+3adf692b7c: 切符で乗車するときの大人運賃。
+bd1627ba76: ICカードで乗車するときの大人運賃。
+34d875e1bf: 切符で乗車するときの子供運賃。
+3d10606edb: ICカードで乗車するときの子供運賃。
+772d81ed37: 運賃計算で経由する駅のID（`odpt:Station` の `owl:sameAs`）の一覧。
+873125bd38: 運賃計算で経由する路線のID（`odpt:Railway` の `owl:sameAs`）の一覧。
+08f048b06d: 乗車券の種別。特急やライナーのように列車の種別で料金が変わる場合に入る。
+025747d8d4: 使える支払い方法の一覧。
+b4892744ea: データのクラス。常に `odpt:Station`。
+8730259654: 'このデータのID。`odpt.Station:会社名.路線名.駅名` の形。'
+4fff52c5fe: 日本語の駅名。
+fba0372018: 路線のID（`odpt:Railway` の `owl:sameAs`）。  # odpt:railway
+077aa96052: 駅番号。
+43d222c574: 駅の代表点の経度（WGS84、10進数）。
+8bd458c4d9: 駅の代表点の緯度（WGS84、10進数）。
+0a6f415ae9: 駅の出入口のID（`ug:Poi` の `@id`）の一覧。
+216282d98c: この駅で乗り換えられる路線のID（`odpt:Railway` の `owl:sameAs`）の一覧。
+eee33ce3ec: この駅から乗り換えられる駅のID（`odpt:Station` の `owl:sameAs`）の一覧。
+9306007d05: この駅の駅時刻表のID（`odpt:StationTimetable` の `owl:sameAs`）の一覧。
+f8b24b1632: この駅の乗降人員データのID（`odpt:PassengerSurvey` の `owl:sameAs`）の一覧。
+cc13bb54ef: データのクラス。常に `odpt:StationTimetable`。
+dfcfc0bbf0: この時刻表が適用され始めたダイヤ改正日（ISO 8601の日付）。  # dct:issued
+4127389ae2: 'このデータのID。`odpt.StationTimetable:会社名.路線名.駅名.方面名.曜日種別` の形。'
+6b086a1c7a: 方面のID（`odpt:RailDirection` の `owl:sameAs`）。
+3a7c4cf5d4: この時刻表が適用される曜日・日付区分のID（`odpt:Calendar` の `owl:sameAs`）。  # odpt:calendar
+642b647d20: 列車ごとの発着時刻、行先などの一覧。
+e7f56f8456: ほかのプロパティで表せない補足事項の文章（多言語表記）。  # odpt:note
+ec5b1d09b6: 到着時刻。
+a7544201d1: 出発時刻。
+720326226a: 始発駅のID（`odpt:Station` の `owl:sameAs`）の一覧。
+dc913c994e: 行先（終着駅）のID（`odpt:Station` の `owl:sameAs`）の一覧。
+66c90bc450: 経由する駅のID（`odpt:Station` の `owl:sameAs`）の一覧。
+6f7308930e: 経由する路線のID（`odpt:Railway` の `owl:sameAs`）の一覧。
+b0b5e24cce: 発着する列車のID（`odpt:Train` の `owl:sameAs`）。
+6c1317ab8c: 列車番号。
+981fc567b7: 列車種別のID（`odpt:TrainType` の `owl:sameAs`）。
+5fc739f396: 列車の名称や愛称の一覧（多言語表記）。
+4f9183f274: 車両を所有する事業者のID（`odpt:Operator` の `owl:sameAs`）。
+09b563fda2: 最終列車なら true。最終列車でなければこのプロパティはない。
+6a772e764c: この駅が始発なら true。始発でなければこのプロパティはない。
+af4ff6a59f: 列車が到着するホームの番号。
+88500da81f: 列車が発着するホームの名前（多言語表記）。
+67313888a1: 車両の数。停車する車両の数が列車によって違う駅でだけ入る。
+28602f8ef4: このデータを一意に識別するucodeまたはUUID。
+ee5aa7ad38: データのクラス。常に `odpt:Train`。
+b8efcad757: このデータが有効な期限（ISO 8601）。
+48ae2a3ab2: 'このデータのID。`odpt.Train:会社名.路線名.列車番号` の形。'
+f22fcd4964: 走行している路線のID（`odpt:Railway` の `owl:sameAs`）。
+b66d0621c8: 進行方向のID（`odpt:RailDirection` の `owl:sameAs`）。
+ae8468916f: 列車種別のID（`odpt:TrainType` の `owl:sameAs`）。
+1ef067e3c6: 列車が停車中の駅、または最後に発車した駅のID（`odpt:Station` の `owl:sameAs`）。
+379fa4dd53: 列車が次に向かう駅のID（`odpt:Station` の `owl:sameAs`）。
+b16d51c035: 始発駅のID（`odpt:Station` の `owl:sameAs`）の一覧。
+1709d35c99: 行先（終着駅）のID（`odpt:Station` の `owl:sameAs`）の一覧。
+f570213a7d: 経由する駅のID（`odpt:Station` の `owl:sameAs`）の一覧。
+0b32aae81d: 経由する路線のID（`odpt:Railway` の `owl:sameAs`）の一覧。
+655927c90a: 路線内での列車の並び順。
+f59e6d2af5: 遅れの時間（秒）。
+629de3631b: 車両の数。
+7057ab83c3: データのクラス。常に `odpt:TrainInformation`。
+5aad0092d6: 'このデータのID。`odpt.TrainInformation:会社名.路線名` か `odpt.TrainInformation:会社名` の形。'
+29b4fc258e: 運行情報が発生した日時（ISO 8601）。
+3567d21f54: 運行情報の対象路線のID（`odpt:Railway` の `owl:sameAs`）。
+06d8709a9e: 運行状況の短い表記（多言語表記）。平常時はこのプロパティがない。運行情報があれば「運行情報あり」、遅延などがわかれば「遅延」のような文字列が入る。
+5a37becaae: 運行情報の本文（多言語表記）。
+ad104e6d4c: 運行情報の対象となる進行方向のID（`odpt:RailDirection` の `owl:sameAs`）。わからない場合はこのプロパティがない。
+831d6a7e46: 運行情報の対象地域（多言語表記）。わからない場合はこのプロパティがない。
+442b12c1d7: 鉄道の種類（多言語表記）。わからない場合はこのプロパティがない。
+a28fd9696e: 運行情報の対象区間の起点。わからない場合はこのプロパティがない。
+919e4cbd76: 運行情報の対象区間の終点。わからない場合はこのプロパティがない。
+cd08522708: 運行情報の対象区間（多言語表記）。わからない場合はこのプロパティがない。
+513600140c: 運行情報の原因（多言語表記）。わからない場合はこのプロパティがない。
+d652db77da: 振替輸送を行っている路線の一覧。
+676692467e: 運転再開の見込み時刻。入っていないことが多い。
+03721dd8b4: データのクラス。常に `odpt:TrainTimetable`。
+b5f9969f7c: 'このデータのID。`odpt.TrainTimetable:会社名.路線名.列車番号.曜日種別` の形。同じIDが複数できる場合は、末尾に `.1`、`.2` のように連番が付く。'
+2a0c73117d: 路線のID（`odpt:Railway` の `owl:sameAs`）。
+da1a1cd8e8: 列車のID（`odpt:Train` の `owl:sameAs`）。
+833d544fed: 経由する路線のID（`odpt:Railway` の `owl:sameAs`）の一覧。
+d961ca0145: 1本の列車の時刻表が複数のデータに分かれているとき、1つ前の部分のID（`odpt:TrainTimetable` の `owl:sameAs`）の一覧。
+4ca4260de1: 1本の列車の時刻表が複数のデータに分かれているとき、1つ後の部分のID（`odpt:TrainTimetable` の `owl:sameAs`）の一覧。
+d9ee1094f4: 停車駅ごとの時刻の一覧。各要素は出発駅と出発時刻、または到着駅と到着時刻を持つ。
+2e851932e7: 乗車券のほかに料金がかかるなら true。
+51454a6926: 到着時刻。発車時刻と違う場合に入ることがある。
+62743a18c8: データのクラス。常に `odpt:TrainType`。
+f953dcd555: 'このデータのID。`odpt.TrainType:会社名.列車種別` の形。'
+ae5e471d1c: 日本語の列車種別名。
+f7f555c3cf: 列車種別名の多言語表記。
+67306af597: このデータを一意に識別するID。
+dde7426dfe: データのクラス。常に `odpt:Bus`。
+6e8c910777: このバス運行データのID。
+4c53f72fc9: バスの車両番号。
+de63352591: このデータを生成した日時。
+34c05e087e: このデータが有効な期限。
+57e904089a: データの更新間隔（秒）。この秒数が過ぎてから再度取得すると新しい値が得られる。
+6647f96629: 運行中の系統のID（`odpt:BusroutePattern` の `owl:sameAs`）。
+0b464767d2: 運行中の便の時刻表のID（`odpt:BusTimetable` の `owl:sameAs`）。
+1070331266: 運行事業者のID（`odpt:Operator` の `owl:sameAs`）。
+39420711c2: 運行中の系統の始発バス停のID（`odpt:BusstopPole` の `owl:sameAs`）。
+e2a5036e08: 運行中の系統の終点バス停のID（`odpt:BusstopPole` の `owl:sameAs`）。
+23cd3e0193: バスが停車中のバス停、または最後に通過したバス停のID（`odpt:BusstopPole` の `owl:sameAs`）。
+085bcc3dce: 最後に通過したバス停を出た時刻。`odpt:fromBusstopPole` が null ならこの値も null。
+e83add4a24: バスが次に着くバス停のID（`odpt:BusstopPole` の `owl:sameAs`）。
+9791e3f142: '`odpt:fromBusstopPole` を0、`odpt:toBusstopPole` を1としたときの現在位置の割合。'
+528005ecea: バスの現在位置の経度（WGS84、10進数）。
+5f23064786: バスの現在位置の緯度（WGS84、10進数）。
+e217d9e997: バスの速度（km/h）。
+6fa6b9d8e1: バスが向いている方位角（度）。北を0度とし、時計回りに増える。
+69118561ae: 扉の状態。`open` は開、`close` は閉、`self` は半自動。
+7aa785d51d: 車内の混み具合。
+086e5fcec8: データのクラス。常に `odpt:BusTimetable`。
+bfbc02058a: このバス時刻表のID。
+34158c4c29: この時刻表が適用され始めたダイヤ改正日。
+759e528759: 系統名などのバス路線名。
+a6ec5904ff: バス路線名の読み。
+f77d9ce90a: この時刻表の系統のID（`odpt:BusroutePattern` の `owl:sameAs`）。
+e3b30c0960: 適用される曜日・日付区分のID（`odpt:Calendar` の `owl:sameAs`）。
+fbe2f81f0b: バス停ごとの時刻の一覧。
+184065ef67: 系統内でバス停を通る順番。
+79bf40ed4f: バス停標柱のID（`odpt:BusstopPole` の `owl:sameAs`）。
+e4ed706e6e: バスがバス停に着く時刻。
+9f9ecf7f0d: バスがバス停を出る時刻。
+c4f93c698b: 行先表示（方向幕）の内容。
+52236284ab: ノンステップバスなら true。
+f496ba9fa6: 深夜バスなら true。
+47eceef8ea: このバス停で乗車できるなら true。
+891356f3b3: このバス停で降車できるなら true。
+fd11799da5: 補足事項。
+86f83eb14d: このデータを一意に識別するucode。
+f559c1476e: データのクラス。常に `odpt:BusroutePattern`。
+3ac5f8a718: このバス路線データのID。
+5bf5234756: このデータが有効な期限。
+126fac4e78: 系統名や系統番号などのバス路線名。
+538a69caf4: 運行事業者のID（`odpt:Operator` の `owl:sameAs`）。
+d4e8a53336: 系統のID。
+c85097c515: 系統パターン。
+1121471a0f: 運行の方向。
+fd3d0987f2: 系統で停まるバス停を順番に並べた一覧。
+d728fd3ab3: バスの現在位置を表示するWebサイトのURL。
+74c6686dd0: バス停標柱のID（`odpt:BusstopPole` の `owl:sameAs`）。
+b6143575e3: 系統内でバス停を通る順番。通る順に値が大きくなる。
+351ad17c9a: 乗車に使える扉。
+29ff62d730: 降車に使える扉。
+26a56b0ac7: データのクラス。常に `odpt:BusroutePatternFare`。
+a37f7a2212: このバス運賃データのID。
+0b73c92b7e: この運賃が適用され始めた改定日。
+955e4c57f8: 乗車する系統のID（`odpt:BusroutePattern` の `owl:sameAs`）。
+b0efb419b4: 乗車するバス停が `odpt:fromBusroutePattern` の系統で何番目か。その系統の `odpt:busstopPoleOrder` にある `odpt:index` の値。
+283d99c838: 乗車するバス停のID。`odpt:fromBusroutePattern` と `odpt:fromBusstopPoleOrder` で決まるバス停と同じ。
+e134617948: 降車する系統のID（`odpt:BusroutePattern` の `owl:sameAs`）。
+0474472c9a: 降車するバス停が `odpt:toBusroutePattern` の系統で何番目か。その系統の `odpt:busstopPoleOrder` にある `odpt:index` の値。
+7e5cba7d54: 降車するバス停のID（`odpt:BusstopPole` の `owl:sameAs`）。`odpt:toBusroutePattern` と `odpt:toBusstopPoleOrder` で決まるバス停と同じ。
+fc68b260c9: 切符で乗車するときの大人運賃（円）。
+1f47acb65f: 切符で乗車するときの子供運賃（円）。
+90b137315c: ICカードで乗車するときの大人運賃（円）。
+80e337b748: ICカードで乗車するときの子供運賃（円）。
+b278582535: データのクラス。常に `odpt:BusstopPole`。
+17b3846802: このバス停標柱データのID。
+97de4fb0b5: バス停名。
+c187256c11: バス停名の読み。
+db93ab17c6: バス停名の多言語表記。
+80aee749fa: 標柱の経度（WGS84）。
+f8f2319bee: 標柱の緯度（WGS84）。
+a774d670f2: このバス停に停まる系統のID（`odpt:BusroutePattern` の `owl:sameAs`）の一覧。
+13b9d0650c: このバス停に停まるバスの事業者のID（`odpt:Operator` の `owl:sameAs`）の一覧。
+d9a839d07f: 同じ名前のバス停にある標柱どうしを区別する番号。のりば番号と同じとは限らない。
+ba2848a9ab: のりば番号。
+9e1a1054bf: この標柱の時刻表のID（`odpt:BusstopPoleTimetable` の `owl:sameAs`）の一覧。
+70bd9c19ee: データのクラス。常に `odpt:BusstopPoleTimetable`。
+18120a46a1: このバス停標柱時刻表のID。
+53379853da: このデータが有効な期限（ISO 8601）。期限がない場合はこのプロパティがない。
+c72a7adf89: バス停標柱のID（`odpt:BusstopPole` の `owl:sameAs`）。
+8e9e33d68b: 方面のID。配列で入ることもある。
+784869841b: 路線のID。複数の路線をまとめた時刻表などでは配列で入ることもある。
+b5c99e1f9c: 適用される曜日・日付区分のID（`odpt:Calendar` の `owl:sameAs`）。
+f6e9e95c55: 便ごとの時刻の一覧。
+4a2d407e6c: 行先のバス停標柱のID（`odpt:BusstopPole` の `owl:sameAs`）。
+5cb1c97c62: 系統のID（`odpt:BusroutePattern` の `owl:sameAs`）。
+423069f751: このバス停が `odpt:busroutePattern` の系統で何番目か。その系統の `odpt:busstopPoleOrder` にある `odpt:index` の値。
+7e80805b1e: データのクラス。常に `odpt:Airport`。
+33500ae426: このデータを生成した日時（ISO 8601）。
+8263f80184: 'このデータのID。`odpt.Airport:` にIATAの3文字の空港コードが続く形。'
+dd0be450d8: 日本語の空港名。所在地がわかり、ほかの空港と区別できる名前になっている。
+6233dafa37: 空港名の多言語表記。
+2f832f17e6: この空港のターミナルのID（`odpt:AirportTerminal` の `owl:sameAs`）の一覧。
+e9bdc623c7: 代表点の経度（WGS84、10進数）。
+19082cc552: 代表点の緯度（WGS84、10進数）。
+854170e614: データのクラス。常に `odpt:AirportTerminal`。
+765dfad51f: 'このデータのID。`odpt.AirportTerminal:IATA空港コード.ターミナル` の形。ターミナル内のウィングなどを表す場合は、さらに `.ウィング` などが続く。'
+9a72117418: 日本語のターミナル名。
+880944f302: ターミナル名の多言語表記。
+f0810a193a: 空港のID（`odpt:Airport` の `owl:sameAs`）。
+a285b645a4: データのクラス。常に `odpt:FlightInformationArrival`。
+425a71ebfa: 'このデータのID。`odpt.FlightInformationArrival:情報提供者.到着空港.便名` の形。情報提供者は空港か航空会社。同じIDが複数できる場合は、末尾に `.1`、`.2` のように連番が付く。'
+cdec015d83: この到着情報を提供している空港事業者または航空会社のID（`odpt:Operator` の `owl:sameAs`）。
+b7f6501593: 運航する航空会社のID（`odpt:Operator` の `owl:sameAs`）。
+d680682675: 便名の一覧。共同運航便では複数になる。
+c56e1c441a: 運航状況のID（`odpt:FlightStatus` の `owl:sameAs`）。
+78a02faa20: 欠航や引き返しなど、知らせるべき事柄がある場合の短い説明（多言語表記）。
+9486459a6f: 欠航や引き返しなど、知らせるべき事柄がある場合の詳しい説明（多言語表記）。
+0451c68477: 定刻の到着時刻。
+6b0bf4dda8: 変更後の到着予定時刻。到着するとこのプロパティはなくなり、代わりに `odpt:actualArrivalTime` が入る。
+2c9d5f0ee2: 実際に到着した時刻。到着するまではこのプロパティがない。
+da88cfb27a: 到着空港のID（`odpt:Airport` の `owl:sameAs`）。
+c5829b7431: 到着空港のターミナルのID（`odpt:AirportTerminal` の `owl:sameAs`）。
+716d01f281: 到着空港のゲート番号。
+729c86e3dc: 到着空港の手荷物受取所。
+d029b5c611: 出発空港のID（`odpt:Airport` の `owl:sameAs`）。
+c444842556: 経由する空港のID（`odpt:Airport` の `owl:sameAs`）の一覧。
+a01908f4c2: 機材の型式。
+ea080b98d0: データのクラス。常に `odpt:FlightInformationDeparture`。
+3a673862ae: 'このデータのID。`odpt.FlightInformationDeparture:情報提供者.出発空港.便名` の形。情報提供者は空港か航空会社。同じIDが複数できる場合は、末尾に `.1`、`.2` のように連番が付く。'
+fe771f76bd: この出発情報を提供している空港事業者または航空会社のID（`odpt:Operator` の `owl:sameAs`）。
+43d566ccaf: 知らせるべき事柄がある場合の短い説明（多言語表記）。
+86c522026a: 知らせるべき事柄がある場合の詳しい説明（多言語表記）。
+9ba5078e01: 定刻の出発時刻。
+a4f7a4659b: 変更後の出発予定時刻。出発するとこのプロパティはなくなり、代わりに `odpt:actualDepartureTime` が入る。
+62222343aa: 実際に出発した時刻。出発するまではこのプロパティがない。
+e2b68cc219: 出発空港のID（`odpt:Airport` の `owl:sameAs`）。
+62249601c4: 出発空港のターミナルのID（`odpt:AirportTerminal` の `owl:sameAs`）。
+444a51278e: 出発空港のゲート番号。
+252207da6b: 出発空港のチェックインカウンターの一覧。
+d64c057561: 到着地の空港のID（`odpt:Airport` の `owl:sameAs`）。
+ed59ef2eb3: データのクラス。常に `odpt:FlightSchedule`。
+b05682603f: 'このデータのID。`odpt.FlightSchedule:情報提供者.出発空港.到着空港.曜日・日付区分` の形。情報提供者は空港か航空会社。'
+9e98c29802: この時刻表を提供している空港事業者または航空会社のID（`odpt:Operator` の `owl:sameAs`）。
+613cef293f: この時刻表が適用される曜日・日付区分のID（`odpt:Calendar` の `owl:sameAs`）。
+73d08f3f93: 出発空港のID（`odpt:Airport` の `owl:sameAs`）。
+fb6e759ef2: 到着空港のID（`odpt:Airport` の `owl:sameAs`）。
+e600cd643f: 便ごとの時刻の一覧。
+6f6fa59fb1: 運航する航空会社のID。
+20347cb1e3: 出発空港を出る予定の時刻（現地時刻）。
+152463a3f1: 出発日が `odpt:calendar` の日から何日ずれるか。0は同じ日、1は翌日、-1は前日に出発する。
+eac06c84be: 到着空港に着く予定の時刻（現地時刻）。
+3193b1dc7f: 到着日が `odpt:calendar` の日から何日ずれるか。0は同じ日、1は翌日、-1は前日に到着する。
+df07f41ad9: この時刻が適用され始める日時（ISO 8601）。
+7add98c8ca: この時刻が適用される最後の日時（ISO 8601）。
+9915d1ad0b: データのクラス。常に `odpt:FlightStatus`。
+3eb4a4cafb: 'このデータのID。`odpt.FlightStatus:` に運航状況の名前が続く形。'
+6a23c72af7: 日本語の運航状況名。
+d81e88350d: 運航状況名の多言語表記。
+b925b593c8: データの `@id` で絞り込む。
+3035b5e082: データの `owl:sameAs` で絞り込む。
+3b6890f2b9: 曜日・日付区分を検索
+0c7fe0ff70: 事業者を検索
+7535a918cd: 事業者のID（`odpt:Operator` の `owl:sameAs`）で絞り込む。
+acce2a384b: 駅別の乗降人員を検索
+007585b675: 進行方向を検索
+777286ddff: 日本語の路線名で絞り込む（例：京王線）。
+361dbbd218: 路線記号で絞り込む（例：丸ノ内線は `M`）。
+da248c89dd: 路線を検索
+bff46b771f: 2駅間の運賃を検索
+b9decc0da8: 日本語の駅名で絞り込む（例：新宿）。
+a0a79b0fe3: 駅がある路線のID（`odpt:Railway` の `owl:sameAs`）で絞り込む。
+a86d987cb2: 駅番号で絞り込む（例：`OH01`）。
+3b48c6a4fa: 駅を検索
+1e4a4a1f5e: 駅のID（`odpt:Station` の `owl:sameAs`）で絞り込む。
+d74007e655: 路線のID（`odpt:Railway` の `owl:sameAs`）で絞り込む。
+6d2f8732bf: 事業者のID（`odpt:Operator` の `owl:sameAs`）で絞り込む。
+e13281bb16: 進行方向のID（`odpt:RailDirection` の `owl:sameAs`）で絞り込む。
+5870d55899: 曜日・日付区分のID（`odpt:Calendar` の `owl:sameAs`）で絞り込む。
+d1921a7c8e: 指定した日付に使われる時刻表に絞り込む。
+8ffa80fc7e: 駅時刻表を検索
+d67f8d5c3d: 列車の位置情報を提供している事業者のID（`odpt:Operator` の `owl:sameAs`）で絞り込む。
+f87534c06c: 列車が走っている路線のID（`odpt:Railway` の `owl:sameAs`）で絞り込む。
+bc2c8f3683: 走行中の列車の位置を検索
+ff33f0adb8: 運行情報を提供している事業者のID（`odpt:Operator` の `owl:sameAs`）で絞り込む。
+c85e3375d1: 運行情報の対象路線のID（`odpt:Railway` の `owl:sameAs`）で絞り込む。
+505f67bfcf: 列車の運行情報を検索
+c8f3aca7f3: データの `owl:sameAs` で絞り込む。
+9de67e67b4: 路線のID（`odpt:Railway` の `owl:sameAs`）で絞り込む。
+8bb67f50db: 運行事業者のID（`odpt:Operator` の `owl:sameAs`）で絞り込む。
+7f3fbd227a: 列車種別のID（`odpt:TrainType` の `owl:sameAs`）で絞り込む。
+b170a3bc82: 列車のID（`odpt:Train` の `owl:sameAs`）で絞り込む。
+fda4ec47fe: 曜日・日付区分のID（`odpt:Calendar` の `owl:sameAs`）で絞り込む。
+7405f90f3d: 列車時刻表を検索
+72458a4b80: 列車種別を検索
+46966fae2d: バスが運行している系統のID（`odpt:BusroutePattern` の `owl:sameAs`）で絞り込む。
+28b3ad1c25: 事業者のID（`odpt:Operator` の `owl:sameAs`）で絞り込む。
+9918a23bb3: バスが停車中のバス停、または最後に通過したバス停のID（`odpt:BusstopPole` の `owl:sameAs`）で絞り込む。
+0b69780353: バスが次に着くバス停のID（`odpt:BusstopPole` の `owl:sameAs`）で絞り込む。
+7bb652989f: 走行中のバスの位置を検索
+174666af08: 系統のID（`odpt:BusroutePattern` の `owl:sameAs`）で絞り込む。
+4f83c9c541: 系統名などのバス路線名で絞り込む。
+5133931048: バス時刻表を検索
+37f80c23e0: 路線名や系統名で絞り込む。
+593d1e22a3: 路線のIDで絞り込む。
+6d96b6c847: バスの系統を検索
+eed9777744: 乗車するバス停標柱のID（`odpt:BusstopPole` の `owl:sameAs`）で絞り込む。
+70c50c6972: 降車するバス停標柱のID（`odpt:BusstopPole` の `owl:sameAs`）で絞り込む。
+fa493e163e: バスの運賃を検索
+8baa9251ee: バス停名で絞り込む。
+f5e41dbaac: 標柱番号で絞り込む。
+87f4c7c07a: この標柱に停まる系統のID（`odpt:BusroutePattern` の `owl:sameAs`）で絞り込む。
+2c7c0e3236: バス停標柱を検索
+b0901fd92c: バス停標柱のID（`odpt:BusstopPole` の `owl:sameAs`）で絞り込む。
+d1e567e2e8: 方面のIDで絞り込む。
+3fb25178e7: データの生成日で絞り込む。
+7e5c32fa32: バス停標柱の時刻表を検索
+296fe878e4: 空港を検索
+30d8e683ac: 空港ターミナルを検索
+cb7955b6fa: 情報を提供している空港事業者または航空会社のID（`odpt:Operator` の `owl:sameAs`）で絞り込む。
+b125edf407: 運航する航空会社のID（`odpt:Operator` の `owl:sameAs`）で絞り込む。
+afb36832d9: 運航状況のID（`odpt:FlightStatus` の `owl:sameAs`）で絞り込む。
+bb145f5bdd: 到着空港のターミナルのID（`odpt:AirportTerminal` の `owl:sameAs`）で絞り込む。
+f968276f71: 到着空港のゲート番号で絞り込む。
+d1e88f22ba: 当日の到着便の最新情報を検索
+6db64f4d53: 出発空港のターミナルのID（`odpt:AirportTerminal` の `owl:sameAs`）で絞り込む。
+76ace44ce4: 出発空港のゲート番号で絞り込む。
+36773c6f25: 当日の出発便の最新情報を検索
+e0962f9327: 曜日・日付区分のID（`odpt:Calendar` の `owl:sameAs`）で絞り込む。
+9f43baff30: 空港を発着する便の予定時刻表を検索
+faabce8af7: 運航状況の種類を検索
